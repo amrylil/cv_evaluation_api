@@ -4,7 +4,7 @@ import { registry } from "./registry";
 registry.register("DocumentCore", documentCoreSchema);
 registry.registerPath({
   method: "post",
-  path: "/upload",
+  path: "/documents",
   tags: ["Documents"],
   summary: "Upload a CV or Project file",
   description:

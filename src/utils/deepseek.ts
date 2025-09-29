@@ -1,5 +1,3 @@
-import { fetch } from "bun";
-
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const API_KEY = process.env.OPENROUTER_API_KEY!;
 

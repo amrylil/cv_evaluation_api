@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, Router } from "express";
 import evaluationRouter from "./routes/evaluation.routes";
 import jobsRouter from "./routes/jobs.routes";
+import documentRouter from "./routes/documents.routes";
 import swaggerUi from "swagger-ui-express";
 import { generateOpenApiSpec } from "./openapi";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -14,6 +15,7 @@ v1Router.use("/docs", swaggerUi.serve, swaggerUi.setup(generateOpenApiSpec()));
 
 v1Router.use("/evaluations", evaluationRouter);
 v1Router.use("/jobs", jobsRouter);
+v1Router.use("/documents", documentRouter);
 
 app.use("/api/v1", v1Router);
 

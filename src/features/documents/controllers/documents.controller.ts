@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ApiResponse } from "../../../utils/apiResponse";
 import { DocumentsService } from "../services/documents.service";
-import multer from "multer";
 
 const asyncHandler =
   (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
@@ -10,7 +9,6 @@ const asyncHandler =
 
 export class DocumentsController {
   private documentsService: DocumentsService;
-  upload = multer({ dest: "uploads/" });
   constructor(documentsService: DocumentsService) {
     this.documentsService = documentsService;
   }
