@@ -8,10 +8,13 @@ datasource db {
 }
 
 model Job {
-  id                   Int      @id @default(autoincrement())
-  title                String   @db.VarChar(255)
-  job_description_text String   @db.Text
-  createdAt            DateTime @default(now()) @map("created_at")
+  id                   Int    @id @default(autoincrement())
+  title                String @db.VarChar(255)
+  job_description_text String @db.Text
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   evaluationTasks EvaluationTask[]
 
@@ -19,10 +22,13 @@ model Job {
 }
 
 model Document {
-  id               Int      @id @default(autoincrement())
-  extractedText    String   @db.Text
-  originalFilename String?  @db.VarChar(255)
-  uploadedAt       DateTime @default(now()) @map("uploaded_at")
+  id               Int     @id @default(autoincrement())
+  extractedText    String  @db.Text
+  originalFilename String? @db.VarChar(255)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   evaluationTasksCv      EvaluationTask[] @relation("CvToDocument")
   evaluationTasksProject EvaluationTask[] @relation("ProjectToDocument")
@@ -39,8 +45,11 @@ model EvaluationTask {
   result            Json?
   errorMessage      String?          @db.Text
   retryCount        Int              @default(0)
-  createdAt         DateTime         @default(now()) @map("created_at")
   completedAt       DateTime?        @map("completed_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   job             Job      @relation(fields: [jobId], references: [id])
   cvDocument      Document @relation("CvToDocument", fields: [cvDocumentId], references: [id])
@@ -54,6 +63,10 @@ model KnowledgeBase {
   text   String @db.Text
   vector Json
   tags   Json?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   @@map("knowledge_base")
 }

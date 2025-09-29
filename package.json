@@ -24,7 +24,8 @@
     "dev": "bun --hot src/server.ts",
     "start": "bun src/server.ts",
     "typecheck": "tsc --noEmit",
-    "generate": "plop --plopfile scripts/plop.js"
+    "generate": "plop --plopfile scripts/plop.js",
+     "seed": "bun prisma/seed.ts"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"
