@@ -1,38 +1,59 @@
+import { documentCoreSchema } from "../features/documents/dtos/documents.dto";
 import { registry } from "./registry";
-import {
-  documentCoreSchema,
-  createDocumentValidator,
-} from "../features/documents/dtos/documents.dto";
 
-registry.register("DocumentsCore", documentCoreSchema);
-registry.register("CreateDocumentsRequest", createDocumentValidator);
-
-// POST /documents
+registry.register("DocumentCore", documentCoreSchema);
 registry.registerPath({
   method: "post",
-  path: "/documents",
+  path: "/upload",
   tags: ["Documents"],
-  summary: "Register a new documents",
+  summary: "Upload a CV or Project file",
+  description:
+    "Uploads a single file (.pdf, .docx) and extracts its text content.",
+
   request: {
     body: {
       content: {
-        "application/json": {
-          schema: { $ref: "#/components/schemas/CreateDocumentsRequest" },
+        "multipart/form-data": {
+          schema: {
+            type: "object",
+            properties: {
+              file: {
+                type: "string",
+                format: "binary",
+                description: "The CV or project file to upload.",
+              },
+            },
+            required: ["file"],
+          },
         },
       },
     },
   },
   responses: {
     201: {
-      description: "Documents created successfully",
+      description: "File uploaded and text extracted successfully",
       content: {
         "application/json": {
-          schema: { $ref: "#/components/schemas/DocumentsCore" },
+          schema: {
+            type: "object",
+            properties: {
+              success: { type: "boolean", example: true },
+              message: {
+                type: "string",
+                example: "File uploaded successfully.",
+              },
+              data: {
+                type: "object",
+                properties: {
+                  document_id: { type: "integer", example: 101 },
+                },
+              },
+            },
+          },
         },
       },
     },
-    400: { description: "Validation error" },
-    409: { description: "Documents already exists" },
+    400: { description: "Bad request or no file uploaded" },
   },
 });
 
