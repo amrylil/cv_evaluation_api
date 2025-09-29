@@ -1,12 +1,14 @@
-import { pipeline } from "@xenova/transformers";
-import { callDeepSeek } from "../../../utils/deepseek";
 import { KnowledgeBaseItem, Task } from "../entities/task";
 import { cosineSimilarity } from "../../../utils/similarity";
 import { IEvaluationService } from "../contract";
+import { pipeline } from "@huggingface/transformers";
+import { callOpenRouter } from "../../../utils/deepseek";
 
 export class evaluationService implements IEvaluationService {
   private embedder: any;
   private knowledgeBase: KnowledgeBaseItem[] = [];
+
+  constructor() {}
 
   async initEmbedder() {
     this.embedder = await pipeline(
@@ -16,11 +18,20 @@ export class evaluationService implements IEvaluationService {
   }
 
   async embedText(text: string): Promise<number[]> {
+    if (!this.embedder) {
+      this.embedder = await pipeline(
+        "feature-extraction",
+        "sentence-transformers/all-MiniLM-L6-v2"
+      );
+    }
+
     const output = await this.embedder(text, {
       pooling: "mean",
       normalize: true,
     });
-    return Array.from(output.data);
+    return Array.isArray(output.data)
+      ? Array.from(output.data)
+      : output.data[0];
   }
 
   async initKnowledgeBase() {
@@ -87,7 +98,7 @@ export class evaluationService implements IEvaluationService {
     - overall_summary
     `;
 
-      const evaluation = await callDeepSeek(prompt);
+      const evaluation = await callOpenRouter(prompt);
       task.status = "completed";
       task.result = evaluation;
     } catch (err) {

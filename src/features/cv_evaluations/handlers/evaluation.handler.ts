@@ -11,6 +11,9 @@ export class evaluationController {
 
   constructor(service?: IEvaluationService) {
     this.evaluationService = service || new evaluationService();
+    this.uploadCV = this.uploadCV.bind(this);
+    this.evaluate = this.evaluate.bind(this);
+    this.getResult = this.getResult.bind(this);
   }
 
   async uploadCV(req: Request, res: Response) {
