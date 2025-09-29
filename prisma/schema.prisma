@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id                   Int      @id @default(autoincrement())
+  title                String   @db.VarChar(255)
+  job_description_text String   @db.Text
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  evaluationTasks EvaluationTask[]
+
+  @@map("jobs")
+}
+
+model Document {
+  id               Int      @id @default(autoincrement())
+  extractedText    String   @db.Text
+  originalFilename String?  @db.VarChar(255)
+  uploadedAt       DateTime @default(now()) @map("uploaded_at")
+
+  evaluationTasksCv      EvaluationTask[] @relation("CvToDocument")
+  evaluationTasksProject EvaluationTask[] @relation("ProjectToDocument")
+
+  @@map("documents")
+}
+
+model EvaluationTask {
+  id                String           @id @default(uuid())
+  jobId             Int
+  cvDocumentId      Int
+  projectDocumentId Int
+  status            EvaluationStatus @default(queued)
+  result            Json?
+  errorMessage      String?          @db.Text
+  retryCount        Int              @default(0)
+  createdAt         DateTime         @default(now()) @map("created_at")
+  completedAt       DateTime?        @map("completed_at")
+
+  job             Job      @relation(fields: [jobId], references: [id])
+  cvDocument      Document @relation("CvToDocument", fields: [cvDocumentId], references: [id])
+  projectDocument Document @relation("ProjectToDocument", fields: [projectDocumentId], references: [id])
+
+  @@map("evaluation_tasks")
+}
+
+model KnowledgeBase {
+  id     Int    @id @default(autoincrement())
+  text   String @db.Text
+  vector Json
+  tags   Json?
+
+  @@map("knowledge_base")
+}
+
+enum EvaluationStatus {
+  queued
+  processing
+  completed
+  failed
+}
