@@ -1,13 +1,11 @@
 import { registry } from "./registry";
 import {
-  evaluationsCoreSchema,
-  createEvaluationsSchema,
-  updateEvaluationsSchema,
+  evaluationCoreSchema,
+  createEvaluationSchema,
 } from "../features/evaluations/dtos/evaluations.dto";
 
-registry.register("EvaluationsCore", evaluationsCoreSchema);
-registry.register("CreateEvaluationsRequest", createEvaluationsSchema);
-registry.register("UpdateEvaluationsRequest", updateEvaluationsSchema);
+registry.register("EvaluationsCore", evaluationCoreSchema);
+registry.register("CreateEvaluationsRequest", createEvaluationSchema);
 
 // POST /evaluations
 registry.registerPath({
@@ -118,43 +116,6 @@ registry.registerPath({
         },
       },
     },
-    404: { description: "Evaluations not found" },
-  },
-});
-
-// PATCH /evaluations/{id}
-registry.registerPath({
-  method: "patch",
-  path: "/evaluations/{id}",
-  tags: ["Evaluations"],
-  summary: "Update a evaluations by ID",
-  parameters: [
-    {
-      name: "id",
-      in: "path",
-      required: true,
-      schema: { type: "string" },
-    },
-  ],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: { $ref: "#/components/schemas/UpdateEvaluationsRequest" },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Evaluations updated successfully",
-      content: {
-        "application/json": {
-          schema: { $ref: "#/components/schemas/EvaluationsCore" },
-        },
-      },
-    },
-    400: { description: "Validation error" },
     404: { description: "Evaluations not found" },
   },
 });

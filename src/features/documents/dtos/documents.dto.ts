@@ -1,50 +1,60 @@
 import { z } from "../../../config/zod-openapi";
-import { v4 as uuidv4 } from "uuid";
 
 /**
- * Schema for documents representation
+ * Schema for Document representation, matching the database model.
  */
-export const documentsCoreSchema = z.object({
-  id: z.string().uuid().openapi({ example: uuidv4() }),
-  name: z.string().min(1, "Name is required").openapi({ example: "Sample Documents" }),
-  // TODO: Add other fields for your model here
+export const documentCoreSchema = z.object({
+  id: z.number().int().positive().openapi({
+    example: 101,
+    description: "Unique identifier for the document.",
+  }),
+  extractedText: z.string().openapi({
+    example: "This is the full text extracted from the uploaded CV...",
+    description: "The raw text content extracted from the file.",
+  }),
+  originalFilename: z.string().nullable().openapi({
+    example: "candidate_cv.pdf",
+    description: "The original filename of the uploaded document.",
+  }),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  deletedAt: z.date().nullable(),
 });
 
 /**
- * Schema for create documents request
+ * Schema for creating a new document record.
+ * This is typically used internally by the service after a file upload.
  */
-export const createDocumentsSchema = documentsCoreSchema.omit({ id: true });
+export const createDocumentSchema = documentCoreSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
+
+// An update schema is not provided because documents are treated as immutable.
+// A new version of a document should be a new upload, creating a new record.
 
 /**
- * Schema for update documents request (all fields optional)
+ * Validator for middleware (only for creation).
  */
-export const updateDocumentsSchema = createDocumentsSchema.partial();
+export const createDocumentValidator = createDocumentSchema;
 
 /**
- * Validator for middleware
+ * Validator for getAllDocuments query parameters.
+ * Useful for an admin or debugging endpoint.
  */
-export const createDocumentsValidator = createDocumentsSchema;
-export const updateDocumentsValidator = updateDocumentsSchema;
-
-/**
- * Validator for getAllDocumentss query
- */
-export const getAllDocumentssQuerySchema = z.object({
-  page: z
-    .string()
-    .regex(/^\d+$/, "Page must be a number")
-    .optional()
-    .default("1"),
-  limit: z
-    .string()
-    .regex(/^\d+$/, "Limit must be a number")
-    .optional()
-    .default("10"),
+export const getAllDocumentsQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/).optional().default("1"),
+  limit: z.string().regex(/^\d+$/).optional().default("10"),
+  filename: z.string().optional().openapi({
+    description: "Search documents by original filename",
+    example: "cv.pdf",
+  }),
 });
 
 /**
- * TypeScript types
+ * TypeScript types inferred from schemas.
  */
-export type DocumentsCoreDto = z.infer<typeof documentsCoreSchema>;
-export type CreateDocumentsDto = z.infer<typeof createDocumentsSchema>;
-export type UpdateDocumentsDto = z.infer<typeof updateDocumentsSchema>;
+export type DocumentCoreDto = z.infer<typeof documentCoreSchema>;
+export type CreateDocumentsDto = z.infer<typeof createDocumentSchema>;

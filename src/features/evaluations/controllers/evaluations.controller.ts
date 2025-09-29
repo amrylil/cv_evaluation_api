@@ -14,14 +14,24 @@ export class EvaluationsController {
   }
 
   createEvaluations = asyncHandler(async (req: Request, res: Response) => {
-    const evaluations = await this.evaluationsService.createEvaluations(req.body);
-    return ApiResponse.success(res, evaluations, "Evaluations created successfully", 201);
+    const evaluations = await this.evaluationsService.createEvaluations(
+      req.body
+    );
+    return ApiResponse.success(
+      res,
+      evaluations,
+      "Evaluations created successfully",
+      201
+    );
   });
 
   getAllEvaluationss = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
-    const result = await this.evaluationsService.findAllEvaluationss(page, limit);
+    const result = await this.evaluationsService.findAllEvaluationss(
+      page,
+      limit
+    );
     return ApiResponse.success(
       res,
       result.data,
@@ -32,13 +42,10 @@ export class EvaluationsController {
   });
 
   getEvaluationsById = asyncHandler(async (req: Request, res: Response) => {
-    const evaluations = await this.evaluationsService.findEvaluationsById(req.params.id);
+    const evaluations = await this.evaluationsService.findEvaluationsById(
+      req.params.id
+    );
     return ApiResponse.success(res, evaluations, "Evaluations found");
-  });
-
-  updateEvaluations = asyncHandler(async (req: Request, res: Response) => {
-    const evaluations = await this.evaluationsService.updateEvaluations(req.params.id, req.body);
-    return ApiResponse.success(res, evaluations, "Evaluations updated successfully");
   });
 
   deleteEvaluations = asyncHandler(async (req: Request, res: Response) => {
@@ -47,7 +54,12 @@ export class EvaluationsController {
   });
 
   restoreEvaluations = asyncHandler(async (req: Request, res: Response) => {
-    const restoredEvaluations = await this.evaluationsService.restoreEvaluations(req.params.id);
-    return ApiResponse.success(res, restoredEvaluations, "Evaluations restored successfully");
+    const restoredEvaluations =
+      await this.evaluationsService.restoreEvaluations(req.params.id);
+    return ApiResponse.success(
+      res,
+      restoredEvaluations,
+      "Evaluations restored successfully"
+    );
   });
 }

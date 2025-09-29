@@ -1,4 +1,4 @@
-import { CreateEvaluationsDto, UpdateEvaluationsDto } from "../dtos/evaluations.dto";
+import { CreateEvaluationDto } from "../dtos/evaluations.dto";
 import { EvaluationsRepository } from "../repositories/evaluations.repository";
 import { ApiError } from "../../../utils/apiError";
 import { IEvaluationsService } from "../evaluations.interface";
@@ -9,7 +9,7 @@ export class EvaluationsService implements IEvaluationsService {
     this.evaluationsRepository = evaluationsRepository;
   }
 
-  async createEvaluations(data: CreateEvaluationsDto) {
+  async createEvaluations(data: CreateEvaluationDto) {
     // Optional: Add validation here, e.g., check for existing name
     // const existing = await this.evaluationsRepository.findByName(data.name);
     // if (existing) {
@@ -19,7 +19,10 @@ export class EvaluationsService implements IEvaluationsService {
   }
 
   async findAllEvaluationss(page: number, limit: number) {
-    const { data, total } = await this.evaluationsRepository.findAll(page, limit);
+    const { data, total } = await this.evaluationsRepository.findAll(
+      page,
+      limit
+    );
 
     return {
       data,
@@ -38,11 +41,6 @@ export class EvaluationsService implements IEvaluationsService {
       throw new ApiError(404, "Evaluations not found");
     }
     return evaluations;
-  }
-
-  async updateEvaluations(id: string, data: UpdateEvaluationsDto) {
-    await this.findEvaluationsById(id);
-    return this.evaluationsRepository.update(id, data);
   }
 
   async deleteEvaluations(id: string) {

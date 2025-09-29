@@ -1,13 +1,11 @@
 import { registry } from "./registry";
 import {
-  documentsCoreSchema,
-  createDocumentsSchema,
-  updateDocumentsSchema,
+  documentCoreSchema,
+  createDocumentValidator,
 } from "../features/documents/dtos/documents.dto";
 
-registry.register("DocumentsCore", documentsCoreSchema);
-registry.register("CreateDocumentsRequest", createDocumentsSchema);
-registry.register("UpdateDocumentsRequest", updateDocumentsSchema);
+registry.register("DocumentsCore", documentCoreSchema);
+registry.register("CreateDocumentsRequest", createDocumentValidator);
 
 // POST /documents
 registry.registerPath({
@@ -118,43 +116,6 @@ registry.registerPath({
         },
       },
     },
-    404: { description: "Documents not found" },
-  },
-});
-
-// PATCH /documents/{id}
-registry.registerPath({
-  method: "patch",
-  path: "/documents/{id}",
-  tags: ["Documents"],
-  summary: "Update a documents by ID",
-  parameters: [
-    {
-      name: "id",
-      in: "path",
-      required: true,
-      schema: { type: "string" },
-    },
-  ],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: { $ref: "#/components/schemas/UpdateDocumentsRequest" },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Documents updated successfully",
-      content: {
-        "application/json": {
-          schema: { $ref: "#/components/schemas/DocumentsCore" },
-        },
-      },
-    },
-    400: { description: "Validation error" },
     404: { description: "Documents not found" },
   },
 });

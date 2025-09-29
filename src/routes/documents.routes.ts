@@ -1,9 +1,6 @@
 import { Router } from "express";
 import { validate } from "../middlewares/validate";
-import {
-  createDocumentsValidator,
-  updateDocumentsValidator,
-} from "../features/documents/dtos/documents.dto";
+import { createDocumentValidator } from "../features/documents/dtos/documents.dto";
 import { DocumentsController } from "../features/documents/controllers/documents.controller";
 import { DocumentsService } from "../features/documents/services/documents.service";
 import { DocumentsRepository } from "../features/documents/repositories/documents.repository";
@@ -17,7 +14,11 @@ const documentsService = new DocumentsService(documentsRepository);
 const documentsController = new DocumentsController(documentsService);
 
 // Create a new documents
-router.post("/", validate(createDocumentsValidator), documentsController.createDocuments);
+router.post(
+  "/",
+  validate(createDocumentValidator),
+  documentsController.uploadFile
+);
 
 // Get all documents (with pagination)
 router.get("/", documentsController.getAllDocumentss);
@@ -26,7 +27,6 @@ router.get("/", documentsController.getAllDocumentss);
 router.get("/:id", documentsController.getDocumentsById);
 
 // Update a documents by ID
-router.patch("/:id", validate(updateDocumentsValidator), documentsController.updateDocuments);
 
 // Soft delete a documents by ID
 router.delete("/:id", documentsController.deleteDocuments);

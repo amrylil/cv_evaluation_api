@@ -1,32 +1,30 @@
-import { Documents } from "@prisma/client";
-import { CreateDocumentsDto, UpdateDocumentsDto } from "./dtos/documents.dto";
+import { Document } from "@prisma/client";
+import { CreateDocumentsDto } from "./dtos/documents.dto";
 
 export interface IDocumentsRepository {
-  findById(id: string): Promise<Documents | null>;
+  findById(id: number): Promise<Document | null>;
   findAll(
     page: number,
     limit: number
-  ): Promise<{ data: Documents[]; total: number }>;
-  store(data: CreateDocumentsDto): Promise<Documents>;
-  update(id: string, data: UpdateDocumentsDto): Promise<Documents>;
-  softDelete(id: string): Promise<Documents>;
-  restore(id: string): Promise<Documents>;
+  ): Promise<{ data: Document[]; total: number }>;
+  store(data: CreateDocumentsDto): Promise<Document>;
+  softDelete(id: number): Promise<Document>;
+  restore(id: number): Promise<Document>;
 }
 
 export interface IDocumentsService {
-  createDocuments(data: CreateDocumentsDto): Promise<Documents>;
-  findDocumentsById(id: string): Promise<Documents | null>;
+  createDocuments(
+    filePath: string,
+    originalFilename: string
+  ): Promise<CreateDocumentsDto>;
+  findDocumentsById(id: number): Promise<Document | null>;
   findAllDocumentss(
     page: number,
     limit: number
   ): Promise<{
-    data: Documents[];
+    data: Document[];
     meta: { total: number; page: number; limit: number; totalPages: number };
   }>;
-  updateDocuments(
-    id: string,
-    data: UpdateDocumentsDto
-  ): Promise<Documents>;
-  deleteDocuments(id: string): Promise<Documents>;
-  restoreDocuments(id: string): Promise<Documents>;
+  deleteDocuments(id: number): Promise<Document>;
+  restoreDocuments(id: number): Promise<Document>;
 }

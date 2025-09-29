@@ -25,7 +25,7 @@
     "start": "bun src/server.ts",
     "typecheck": "tsc --noEmit",
     "generate": "plop --plopfile scripts/plop.js",
-     "seed": "bun prisma/seed.ts"
+    "seed": "bun prisma/seed.ts"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"
@@ -34,10 +34,14 @@
     "@asteasolutions/zod-to-openapi": "^8.1.0",
     "@huggingface/transformers": "^3.7.3",
     "@prisma/client": "^6.16.2",
+    "@types/multer": "^2.0.0",
+    "@types/pdf-parse": "^1.1.5",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "express": "^5.1.0",
     "glob": "^11.0.3",
+    "multer": "^2.0.2",
+    "pdf-parse": "^1.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",

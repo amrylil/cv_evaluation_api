@@ -1,32 +1,28 @@
-import { Evaluations } from "@prisma/client";
-import { CreateEvaluationsDto, UpdateEvaluationsDto } from "./dtos/evaluations.dto";
+import { EvaluationTask } from "@prisma/client";
+import { CreateEvaluationDto } from "./dtos/evaluations.dto";
 
 export interface IEvaluationsRepository {
-  findById(id: string): Promise<Evaluations | null>;
+  findById(id: string): Promise<EvaluationTask | null>;
   findAll(
     page: number,
     limit: number
-  ): Promise<{ data: Evaluations[]; total: number }>;
-  store(data: CreateEvaluationsDto): Promise<Evaluations>;
-  update(id: string, data: UpdateEvaluationsDto): Promise<Evaluations>;
-  softDelete(id: string): Promise<Evaluations>;
-  restore(id: string): Promise<Evaluations>;
+  ): Promise<{ data: EvaluationTask[]; total: number }>;
+  store(data: CreateEvaluationDto): Promise<EvaluationTask>;
+  softDelete(id: string): Promise<EvaluationTask>;
+  restore(id: string): Promise<EvaluationTask>;
 }
 
 export interface IEvaluationsService {
-  createEvaluations(data: CreateEvaluationsDto): Promise<Evaluations>;
-  findEvaluationsById(id: string): Promise<Evaluations | null>;
+  createEvaluations(data: CreateEvaluationDto): Promise<EvaluationTask>;
+  findEvaluationsById(id: string): Promise<EvaluationTask | null>;
   findAllEvaluationss(
     page: number,
     limit: number
   ): Promise<{
-    data: Evaluations[];
+    data: EvaluationTask[];
     meta: { total: number; page: number; limit: number; totalPages: number };
   }>;
-  updateEvaluations(
-    id: string,
-    data: UpdateEvaluationsDto
-  ): Promise<Evaluations>;
-  deleteEvaluations(id: string): Promise<Evaluations>;
-  restoreEvaluations(id: string): Promise<Evaluations>;
+
+  deleteEvaluations(id: string): Promise<EvaluationTask>;
+  restoreEvaluations(id: string): Promise<EvaluationTask>;
 }

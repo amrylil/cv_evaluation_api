@@ -1,7 +1,7 @@
-import { PrismaClient, Evaluations } from "@prisma/client";
-import { CreateEvaluationsDto, UpdateEvaluationsDto } from "../dtos/evaluations.dto";
+import { PrismaClient, EvaluationTask } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { IEvaluationsRepository } from "../evaluations.interface";
+import { CreateEvaluationDto } from "../dtos/evaluations.dto";
 
 export class EvaluationsRepository implements IEvaluationsRepository {
   private prisma: PrismaClient;
@@ -9,8 +9,8 @@ export class EvaluationsRepository implements IEvaluationsRepository {
     this.prisma = prisma;
   }
 
-  async store(data: CreateEvaluationsDto): Promise<Evaluations> {
-    return this.prisma.evaluations.create({
+  async store(data: CreateEvaluationDto): Promise<EvaluationTask> {
+    return this.prisma.evaluationTask.create({
       data: {
         id: uuidv4(),
         ...data,
@@ -18,11 +18,11 @@ export class EvaluationsRepository implements IEvaluationsRepository {
     });
   }
 
-  async findById(id: string): Promise<Evaluations | null> {
-    return this.prisma.evaluations.findUnique({
+  async findById(id: string): Promise<EvaluationTask | null> {
+    return this.prisma.evaluationTask.findUnique({
       where: {
         id,
-        deleted_at: null,
+        deletedAt: null,
       },
     });
   }
@@ -30,43 +30,36 @@ export class EvaluationsRepository implements IEvaluationsRepository {
   async findAll(
     page: number,
     limit: number
-  ): Promise<{ data: Evaluations[]; total: number }> {
+  ): Promise<{ data: EvaluationTask[]; total: number }> {
     const skip = (page - 1) * limit;
-    const whereClause = { deleted_at: null };
+    const whereClause = { deletedAt: null };
 
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.evaluations.findMany({
+      this.prisma.evaluationTask.findMany({
         where: whereClause,
         skip,
         take: limit,
-        orderBy: { created_at: "desc" },
+        orderBy: { createdAt: "desc" },
       }),
-      this.prisma.evaluations.count({ where: whereClause }),
+      this.prisma.evaluationTask.count({ where: whereClause }),
     ]);
     return { data, total };
   }
 
-  async update(id: string, data: UpdateEvaluationsDto): Promise<Evaluations> {
-    return this.prisma.evaluations.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async softDelete(id: string): Promise<Evaluations> {
-    return this.prisma.evaluations.update({
+  async softDelete(id: string): Promise<EvaluationTask> {
+    return this.prisma.evaluationTask.update({
       where: { id },
       data: {
-        deleted_at: new Date(),
+        deletedAt: new Date(),
       },
     });
   }
 
-  async restore(id: string): Promise<Evaluations> {
-    return this.prisma.evaluations.update({
+  async restore(id: string): Promise<EvaluationTask> {
+    return this.prisma.evaluationTask.update({
       where: { id },
       data: {
-        deleted_at: null,
+        deletedAt: null,
       },
     });
   }

@@ -1,5 +1,5 @@
-import { PrismaClient, Documents } from "@prisma/client";
-import { CreateDocumentsDto, UpdateDocumentsDto } from "../dtos/documents.dto";
+import { PrismaClient, Document } from "@prisma/client";
+import { CreateDocumentsDto } from "../dtos/documents.dto";
 import { v4 as uuidv4 } from "uuid";
 import { IDocumentsRepository } from "../documents.interface";
 
@@ -9,20 +9,19 @@ export class DocumentsRepository implements IDocumentsRepository {
     this.prisma = prisma;
   }
 
-  async store(data: CreateDocumentsDto): Promise<Documents> {
-    return this.prisma.documents.create({
+  async store(data: CreateDocumentsDto): Promise<Document> {
+    return this.prisma.document.create({
       data: {
-        id: uuidv4(),
         ...data,
       },
     });
   }
 
-  async findById(id: string): Promise<Documents | null> {
-    return this.prisma.documents.findUnique({
+  async findById(id: number): Promise<Document | null> {
+    return this.prisma.document.findUnique({
       where: {
         id,
-        deleted_at: null,
+        deletedAt: null,
       },
     });
   }
@@ -30,43 +29,36 @@ export class DocumentsRepository implements IDocumentsRepository {
   async findAll(
     page: number,
     limit: number
-  ): Promise<{ data: Documents[]; total: number }> {
+  ): Promise<{ data: Document[]; total: number }> {
     const skip = (page - 1) * limit;
-    const whereClause = { deleted_at: null };
+    const whereClause = { deletedAt: null };
 
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.documents.findMany({
+      this.prisma.document.findMany({
         where: whereClause,
         skip,
         take: limit,
-        orderBy: { created_at: "desc" },
+        orderBy: { createdAt: "desc" },
       }),
-      this.prisma.documents.count({ where: whereClause }),
+      this.prisma.document.count({ where: whereClause }),
     ]);
     return { data, total };
   }
 
-  async update(id: string, data: UpdateDocumentsDto): Promise<Documents> {
-    return this.prisma.documents.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async softDelete(id: string): Promise<Documents> {
-    return this.prisma.documents.update({
+  async softDelete(id: number): Promise<Document> {
+    return this.prisma.document.update({
       where: { id },
       data: {
-        deleted_at: new Date(),
+        deletedAt: new Date(),
       },
     });
   }
 
-  async restore(id: string): Promise<Documents> {
-    return this.prisma.documents.update({
+  async restore(id: number): Promise<Document> {
+    return this.prisma.document.update({
       where: { id },
       data: {
-        deleted_at: null,
+        deletedAt: null,
       },
     });
   }

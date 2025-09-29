@@ -1,7 +1,8 @@
-import { CreateDocumentsDto, UpdateDocumentsDto } from "../dtos/documents.dto";
+import { CreateDocumentsDto } from "../dtos/documents.dto";
 import { DocumentsRepository } from "../repositories/documents.repository";
 import { ApiError } from "../../../utils/apiError";
 import { IDocumentsService } from "../documents.interface";
+import { extractTextFromPdf } from "../../../utils/textExtractor";
 
 export class DocumentsService implements IDocumentsService {
   private documentsRepository: DocumentsRepository;
@@ -9,13 +10,26 @@ export class DocumentsService implements IDocumentsService {
     this.documentsRepository = documentsRepository;
   }
 
-  async createDocuments(data: CreateDocumentsDto) {
-    // Optional: Add validation here, e.g., check for existing name
-    // const existing = await this.documentsRepository.findByName(data.name);
-    // if (existing) {
-    //   throw new ApiError(409, "Documents with this name already exists");
-    // }
-    return this.documentsRepository.store(data);
+  async createDocuments(
+    filePath: string,
+    originalFilename: string
+  ): Promise<CreateDocumentsDto> {
+    const extractedText = await extractTextFromPdf(filePath);
+
+    if (!extractedText || extractedText.trim() === "") {
+      throw new Error("Could not extract any text from the document.");
+    }
+
+    console.log(`Text extracted successfully. Length: ${extractedText.length}`);
+
+    const newDocument = await this.documentsRepository.store({
+      extractedText,
+      originalFilename,
+    });
+
+    console.log(`Document created with ID: ${newDocument.id}`);
+
+    return newDocument;
   }
 
   async findAllDocumentss(page: number, limit: number) {
@@ -32,7 +46,7 @@ export class DocumentsService implements IDocumentsService {
     };
   }
 
-  async findDocumentsById(id: string) {
+  async findDocumentsById(id: number) {
     const documents = await this.documentsRepository.findById(id);
     if (!documents) {
       throw new ApiError(404, "Documents not found");
@@ -40,17 +54,12 @@ export class DocumentsService implements IDocumentsService {
     return documents;
   }
 
-  async updateDocuments(id: string, data: UpdateDocumentsDto) {
-    await this.findDocumentsById(id);
-    return this.documentsRepository.update(id, data);
-  }
-
-  async deleteDocuments(id: string) {
+  async deleteDocuments(id: number) {
     await this.findDocumentsById(id);
     return this.documentsRepository.softDelete(id);
   }
 
-  async restoreDocuments(id: string) {
+  async restoreDocuments(id: number) {
     // Note: This restore logic doesn't check if the item exists but is deleted.
     // You might want to add a `findByIdIncludingDeleted` method in the repository for a more robust check.
     return this.documentsRepository.restore(id);
