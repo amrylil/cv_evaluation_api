@@ -1,5 +1,6 @@
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const API_KEY = process.env.OPENROUTER_API_KEY!;
+const API_KEY =
+  "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";
 
 interface LLMChoice {
   message: { role: string; content: string };

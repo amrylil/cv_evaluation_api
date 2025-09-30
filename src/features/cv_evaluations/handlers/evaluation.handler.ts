@@ -1,49 +1,36 @@
 import { Request, Response } from "express";
-import { EvaluateRequest } from "../dtos/evaluate.dto";
-import { IEvaluationService } from "../contract";
-import { evaluationService } from "../usecases/evaluations.usecase";
-import { UploadRequest, UploadResponse } from "../dtos/upload.dto";
-import { Task } from "../entities/task";
+import { EvaluationService } from "../usecases/evaluations.usecase";
 
-export class evaluationController {
-  private evaluationService: IEvaluationService;
-  private tasks: Record<string, Task> = {};
+const service = new EvaluationService();
 
-  constructor(service?: IEvaluationService) {
-    this.evaluationService = service || new evaluationService();
-    this.uploadCV = this.uploadCV.bind(this);
-    this.evaluate = this.evaluate.bind(this);
-    this.getResult = this.getResult.bind(this);
+export class EvaluationHandler {
+  static async upload(req: Request, res: Response) {
+    try {
+      const file = (req as any).file; // pakai multer
+      const result = await service.uploadCv(file.path, file.originalname);
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   }
 
-  async uploadCV(req: Request, res: Response) {
-    const { cv, project } = req.body as UploadRequest;
-    const id = Date.now().toString();
-    this.tasks[id] = { id, status: "uploaded", cv, project };
-
-    const response: UploadResponse = { id, status: "uploaded" };
-    res.json(response);
+  static async getResult(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await service.getResult(id);
+      res.json(result);
+    } catch (err: any) {
+      res.status(404).json({ error: err.message });
+    }
   }
 
-  async evaluate(req: Request, res: Response) {
-    const { id } = req.body as EvaluateRequest;
-    if (!this.tasks[id])
-      return res.status(404).json({ error: "Task not found" });
-
-    this.tasks[id].status = "queued";
-    res.json({ id, status: "queued" });
-
-    setTimeout(
-      () => this.evaluationService.processEvaluation(this.tasks[id]),
-      2000
-    );
-  }
-
-  async getResult(req: Request, res: Response) {
-    const { id } = req.params;
-    if (!this.tasks[id])
-      return res.status(404).json({ error: "Task not found" });
-
-    res.json(this.tasks[id]);
+  static async runEvaluation(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await service.runEvaluation(id);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   }
 }

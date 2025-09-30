@@ -1,15 +1,14 @@
 import { Router } from "express";
-import { evaluationService } from "../features/cv_evaluations/usecases/evaluations.usecase";
-import { evaluationController } from "../features/cv_evaluations/handlers/evaluation.handler";
+import multer from "multer";
+import { EvaluationHandler } from "../features/cv_evaluations/handlers/evaluation.handler";
 
 const router = Router();
+const upload = multer({ dest: "uploads/" });
 
-const service = new evaluationService();
-const handler = new evaluationController(service);
+router.post("/upload", upload.single("file"), EvaluationHandler.upload);
 
-// Create a new user
-router.post("/upload", handler.uploadCV);
-router.post("/", handler.evaluate);
-router.get("/result/:id", handler.getResult);
+router.post("/:id/evaluate", EvaluationHandler.runEvaluation);
+
+router.get("/result/:id", EvaluationHandler.getResult);
 
 export default router;

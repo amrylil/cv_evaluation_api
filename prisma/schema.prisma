@@ -1,24 +1,10 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-model Job {
-  id                   Int    @id @default(autoincrement())
-  title                String @db.VarChar(255)
-  job_description_text String @db.Text
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  evaluationTasks EvaluationTask[]
-
-  @@map("jobs")
+generator client {
+  provider = "prisma-client-js"
 }
 
 model Document {
@@ -38,9 +24,9 @@ model Document {
 
 model EvaluationTask {
   id                String           @id @default(uuid())
-  jobId             Int
-  cvDocumentId      Int
-  projectDocumentId Int
+  type              TaskType         @default(cv)
+  cvDocumentId      Int?
+  projectDocumentId Int?
   status            EvaluationStatus @default(queued)
   result            Json?
   errorMessage      String?          @db.Text
@@ -51,24 +37,10 @@ model EvaluationTask {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  job             Job      @relation(fields: [jobId], references: [id])
-  cvDocument      Document @relation("CvToDocument", fields: [cvDocumentId], references: [id])
-  projectDocument Document @relation("ProjectToDocument", fields: [projectDocumentId], references: [id])
+  cvDocument      Document? @relation("CvToDocument", fields: [cvDocumentId], references: [id])
+  projectDocument Document? @relation("ProjectToDocument", fields: [projectDocumentId], references: [id])
 
   @@map("evaluation_tasks")
-}
-
-model KnowledgeBase {
-  id     Int    @id @default(autoincrement())
-  text   String @db.Text
-  vector Json
-  tags   Json?
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("knowledge_base")
 }
 
 enum EvaluationStatus {
@@ -76,4 +48,10 @@ enum EvaluationStatus {
   processing
   completed
   failed
+}
+
+enum TaskType {
+  cv
+  project
+  combined
 }

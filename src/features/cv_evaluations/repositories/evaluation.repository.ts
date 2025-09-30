@@ -1,15 +1,46 @@
-import { UploadRequest } from "../dtos/upload.dto";
-import { Task } from "../entities/task";
+import { PrismaClient, EvaluationStatus } from "@prisma/client";
+import { IEvaluationRepository } from "../contract";
 
-export interface ITaskRepository {
-  save(task: Task): Promise<Task>;
-  findById(id: string): Promise<Task | null>;
-  update(task: Task): Promise<Task>;
-  findAll(): Promise<Task[]>;
-}
+export class EvaluationRepository implements IEvaluationRepository {
+  private prisma: PrismaClient;
 
-export interface IEvaluationService {
-  upload(data: UploadRequest): Promise<Task>;
-  evaluate(id: string): Promise<Task>;
-  getResult(id: string): Promise<Task>;
+  constructor() {
+    this.prisma = new PrismaClient();
+  }
+
+  async createDocument(filename: string, extractedText: string) {
+    return this.prisma.document.create({
+      data: { originalFilename: filename, extractedText },
+    });
+  }
+
+  async createTask(documentId: number) {
+    return this.prisma.evaluationTask.create({
+      data: { cvDocumentId: documentId, status: EvaluationStatus.queued },
+    });
+  }
+
+  async updateTask(
+    taskId: string,
+    status: EvaluationStatus,
+    result?: any,
+    errorMessage?: string
+  ) {
+    return this.prisma.evaluationTask.update({
+      where: { id: taskId },
+      data: {
+        status,
+        result,
+        errorMessage,
+        completedAt: status === EvaluationStatus.completed ? new Date() : null,
+      },
+    });
+  }
+
+  async findTaskById(taskId: string) {
+    return this.prisma.evaluationTask.findUnique({
+      where: { id: taskId },
+      include: { cvDocument: true },
+    });
+  }
 }

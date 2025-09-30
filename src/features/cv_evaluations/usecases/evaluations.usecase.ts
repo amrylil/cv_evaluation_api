@@ -1,109 +1,72 @@
-import { KnowledgeBaseItem, Task } from "../entities/task";
-import { cosineSimilarity } from "../../../utils/similarity";
-import { IEvaluationService } from "../contract";
-import { pipeline } from "@huggingface/transformers";
 import { callOpenRouter } from "../../../utils/deepseek";
+import { extractTextFromPdf } from "../../../utils/textExtractor";
+import { IEvaluationService } from "../contract";
+import { EvaluationRepository } from "../repositories/evaluation.repository";
+import { EvaluationStatus } from "@prisma/client";
 
-export class evaluationService implements IEvaluationService {
-  private embedder: any;
-  private knowledgeBase: KnowledgeBaseItem[] = [];
+export class EvaluationService implements IEvaluationService {
+  private repo: EvaluationRepository;
 
-  constructor() {}
-
-  async initEmbedder() {
-    this.embedder = await pipeline(
-      "feature-extraction",
-      "sentence-transformers/all-MiniLM-L6-v2"
-    );
+  constructor() {
+    this.repo = new EvaluationRepository();
   }
 
-  async embedText(text: string): Promise<number[]> {
-    if (!this.embedder) {
-      this.embedder = await pipeline(
-        "feature-extraction",
-        "sentence-transformers/all-MiniLM-L6-v2"
-      );
-    }
+  async uploadCv(filePath: string, filename: string) {
+    const extractedText = await extractTextFromPdf(filePath);
+    const document = await this.repo.createDocument(filename, extractedText);
+    const task = await this.repo.createTask(document.id);
 
-    const output = await this.embedder(text, {
-      pooling: "mean",
-      normalize: true,
-    });
-    return Array.isArray(output.data)
-      ? Array.from(output.data)
-      : output.data[0];
+    return { id: task.id, status: task.status };
   }
 
-  async initKnowledgeBase() {
-    const jobdesc = `
-  We are hiring a Backend Engineer.
-  Requirements:
-  - Node.js, Express
-  - PostgreSQL
-  - Docker, AWS
-  - Experience 2+ years
-  Bonus: LLM, RAG
-  `;
-
-    const rubric = `
-  Scoring rubric:
-  - CV Evaluation: Skills, Experience, Achievements, Cultural Fit
-  - Project Evaluation: Correctness, Code Quality, Resilience, Documentation, Creativity
-  `;
-
-    this.knowledgeBase.push({
-      text: jobdesc,
-      vector: await this.embedText(jobdesc),
-    });
-    this.knowledgeBase.push({
-      text: rubric,
-      vector: await this.embedText(rubric),
-    });
+  async getResult(taskId: string) {
+    const task = await this.repo.findTaskById(taskId);
+    if (!task) throw new Error("Task not found");
+    return task;
   }
 
-  async retrieveContext(query: string, k = 2): Promise<string> {
-    const queryVec = await this.embedText(query);
-    return this.knowledgeBase
-      .map((item) => ({
-        text: item.text,
-        score: cosineSimilarity(queryVec, item.vector),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, k)
-      .map((r) => r.text)
-      .join("\n");
-  }
+  async runEvaluation(taskId: string) {
+    const task = await this.repo.findTaskById(taskId);
+    if (!task) throw new Error("Task not found");
 
-  async processEvaluation(task: Task) {
-    task.status = "processing";
+    await this.repo.updateTask(taskId, EvaluationStatus.processing);
 
-    try {
-      const context = await this.retrieveContext("backend engineer evaluation");
+    const prompt = `
+You are evaluating a candidate.
 
-      const prompt = `
-    Job Description & Rubric:
-    ${context}
+Candidate CV:
+${task.cvDocument?.extractedText}
 
-    Candidate CV:
-    ${task.cv}
-
-    Candidate Project:
-    ${task.project}
-
-    Please evaluate based on rubric. Return JSON with:
-    - cv_match_rate
-    - cv_feedback
-    - project_score
-    - project_feedback
-    - overall_summary
+Please return JSON with:
+{
+  "cv_match_rate": number,
+  "cv_feedback": string,
+  "project_score": number,
+  "project_feedback": string,
+  "overall_summary": string
+}
     `;
 
-      const evaluation = await callOpenRouter(prompt);
-      task.status = "completed";
-      task.result = evaluation;
+    try {
+      const rawResponse = await callOpenRouter(prompt);
+      let parsed: any;
+
+      try {
+        parsed = JSON.parse(rawResponse);
+      } catch {
+        parsed = { rawResponse };
+      }
+
+      await this.repo.updateTask(taskId, EvaluationStatus.completed, parsed);
+      return parsed;
     } catch (err) {
-      task.status = "failed";
-      task.error = (err as Error).message;
+      await this.repo.updateTask(
+        taskId,
+        EvaluationStatus.failed,
+        null,
+        (err as Error).message
+      );
+      throw err;
     }
   }
 }
