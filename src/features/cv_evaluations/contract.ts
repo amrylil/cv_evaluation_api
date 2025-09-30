@@ -1,4 +1,8 @@
 import { Document, EvaluationTask, EvaluationStatus } from "@prisma/client";
+import {
+  EvaluationResponseDto,
+  UploadCvResponseDto,
+} from "./dtos/evaluation.dto";
 
 export interface IEvaluationRepository {
   createDocument(filename: string, extractedText: string): Promise<Document>;
@@ -15,10 +19,10 @@ export interface IEvaluationRepository {
 }
 
 export interface IEvaluationService {
-  uploadCv(
-    filePath: string,
-    filename: string
-  ): Promise<{ id: string; status: string }>;
-  getResult(taskId: string): Promise<EvaluationTask>;
-  runEvaluation(taskId: string): Promise<any>;
+  uploadCv(filePath: string, filename: string): Promise<UploadCvResponseDto>;
+  getResult(taskId: string): Promise<EvaluationResponseDto>;
+  runEvaluation(
+    taskId: string,
+    jobDescription: string
+  ): Promise<EvaluationResponseDto>;
 }
