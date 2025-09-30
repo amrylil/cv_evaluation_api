@@ -1,4 +1,4 @@
-import { IKnowledgeRepository } from "../contract";
+import { IKnowledgeRepository, IKnowledgeService } from "../contract";
 import {
   CreateKnowledgeRequestDto,
   CreateKnowledgeResponseDto,
@@ -8,7 +8,7 @@ import {
 import { embedText } from "../../../utils/vectorStore";
 import { KnowledgeRepository } from "../repositories/knowledge.repository";
 
-export class KnowledgeService {
+export class KnowledgeService implements IKnowledgeService {
   private repo: IKnowledgeRepository;
 
   constructor() {
@@ -33,7 +33,6 @@ export class KnowledgeService {
     return all.map((k) => ({
       id: k.id,
       content: k.content,
-      // embedding: k.embedding as number[],
       createdAt: k.createdAt.toISOString(),
     }));
   }

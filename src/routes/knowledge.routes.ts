@@ -1,17 +1,14 @@
 import { Router } from "express";
 import { KnowledgeHandler } from "../features/cv_evaluations/handlers/knowledge.handler";
-import { validate } from "../middlewares/validate";
-
-const handler = new KnowledgeHandler();
 
 const router = Router();
 
-router.post("/", handler.create);
-router.get("/", handler.getAll);
+router.post("/", KnowledgeHandler.create);
+router.get("/", KnowledgeHandler.getAll);
 
-router.get("/:id", handler.getById);
+router.get("/:id", KnowledgeHandler.getById);
 
-router.put("/:id", handler.update);
-router.delete("/:id", handler.delete);
+router.put("/:id", KnowledgeHandler.update);
+router.delete("/:id", KnowledgeHandler.delete);
 
 export default router;

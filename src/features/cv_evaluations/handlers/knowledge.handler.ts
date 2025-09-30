@@ -6,7 +6,7 @@ import { ApiResponse } from "../../../utils/apiResponse";
 const service = new KnowledgeService();
 
 export class KnowledgeHandler {
-  create = async (req: Request, res: Response) => {
+  static create = async (req: Request, res: Response) => {
     try {
       const dto = createKnowledgeRequestSchema.parse(req.body);
       const created = await service.create(dto);
@@ -21,7 +21,7 @@ export class KnowledgeHandler {
     }
   };
 
-  getAll = async (_: Request, res: Response) => {
+  static getAll = async (_: Request, res: Response) => {
     try {
       const all = await service.getAll();
       return ApiResponse.success(res, all, "Knowledge fetched successfully");
@@ -30,7 +30,7 @@ export class KnowledgeHandler {
     }
   };
 
-  search = async (req: Request, res: Response) => {
+  static search = async (req: Request, res: Response) => {
     try {
       const { q, topK } = req.query;
       if (!q || typeof q !== "string") {
@@ -48,7 +48,7 @@ export class KnowledgeHandler {
     }
   };
 
-  getById = async (req: Request, res: Response) => {
+  static getById = async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       const found = await service.getById(id);
@@ -61,7 +61,7 @@ export class KnowledgeHandler {
     }
   };
 
-  update = async (req: Request, res: Response) => {
+  static update = async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       const { content } = req.body;
@@ -80,7 +80,7 @@ export class KnowledgeHandler {
     }
   };
 
-  delete = async (req: Request, res: Response) => {
+  static delete = async (req: Request, res: Response) => {
     try {
       const id = req.params.id;
       await service.delete(id);

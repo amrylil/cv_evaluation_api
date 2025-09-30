@@ -8,6 +8,12 @@ import {
   EvaluationResponseDto,
   UploadCvResponseDto,
 } from "./dtos/evaluation.dto";
+import {
+  CreateKnowledgeRequestDto,
+  CreateKnowledgeResponseDto,
+  KnowledgeResponseDto,
+  SearchKnowledgeResponseDto,
+} from "./dtos/knowledge.dto";
 
 export interface IKnowledgeRepository {
   store(content: string, embedding: number[]): Promise<KnowledgeBase>;
@@ -38,6 +44,15 @@ export interface IEvaluationRepository {
   findTaskById(
     taskId: string
   ): Promise<(EvaluationTask & { cvDocument: Document | null }) | null>;
+}
+
+export interface IKnowledgeService {
+  create(dto: CreateKnowledgeRequestDto): Promise<CreateKnowledgeResponseDto>;
+  getAll(): Promise<KnowledgeResponseDto[]>;
+  search(query: string, topK?: number): Promise<SearchKnowledgeResponseDto[]>;
+  getById(id: string): Promise<KnowledgeResponseDto | null>;
+  update(id: string, content: string): Promise<KnowledgeResponseDto>;
+  delete(id: string): Promise<void>;
 }
 
 export interface IEvaluationService {
