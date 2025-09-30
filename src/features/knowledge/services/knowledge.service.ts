@@ -2,20 +2,53 @@ import { CreateKnowledgeDto, UpdateKnowledgeDto } from "../dtos/knowledge.dto";
 import { KnowledgeRepository } from "../repositories/knowledge.repository";
 import { ApiError } from "../../../utils/apiError";
 import { IKnowledgeService } from "../knowledge.interface";
+import { pipeline } from "@huggingface/transformers";
 
 export class KnowledgeService implements IKnowledgeService {
   private knowledgeRepository: KnowledgeRepository;
+  private embedder: any;
+
   constructor(knowledgeRepository: KnowledgeRepository) {
     this.knowledgeRepository = knowledgeRepository;
   }
 
+  async embedText(text: string): Promise<number[]> {
+    if (!this.embedder) {
+      this.embedder = await pipeline(
+        "feature-extraction",
+        "sentence-transformers/all-MiniLM-L6-v2"
+      );
+    }
+
+    const output = await this.embedder(text, {
+      pooling: "mean",
+      normalize: true,
+    });
+
+    let vector: number[] = [];
+
+    if (Array.isArray(output.data)) {
+      if (Array.isArray(output.data[0])) {
+        // kasus nested array
+        vector = (output.data[0] as number[]).slice();
+      } else {
+        vector = Array.from(output.data as number[]);
+      }
+    }
+
+    return vector;
+  }
+
   async createKnowledge(data: CreateKnowledgeDto) {
-    // Optional: Add validation here, e.g., check for existing name
-    // const existing = await this.knowledgeRepository.findByName(data.name);
-    // if (existing) {
-    //   throw new ApiError(409, "Knowledge with this name already exists");
-    // }
-    return this.knowledgeRepository.store(data);
+    const { text, tags } = data;
+
+    const vector = await this.embedText(text);
+
+    return this.knowledgeRepository.store({
+      text,
+      vector,
+      tags,
+    });
   }
 
   async findAllKnowledges(page: number, limit: number) {
