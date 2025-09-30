@@ -19,6 +19,6 @@
     "target": "ES2022", // Targetkan versi ECMAScript yang modern
     "lib": ["ES2022"]
   },
-  "include": ["src/**/*"], // Hanya proses file di dalam folder src
+  "include": ["src/**/*", "prisma/seed.ts"], // Hanya proses file di dalam folder src
   "exclude": ["node_modules"] // Abaikan node_modules
 }

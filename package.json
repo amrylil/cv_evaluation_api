@@ -9,7 +9,10 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "generate": "plop --plopfile scripts/plop.js",
-    "seed": "ts-node src/prisma/seed.ts"
+     "db:setup": "prisma migrate dev && prisma db seed"
+  },
+   "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "repository": {
     "type": "git",

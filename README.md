@@ -1,93 +1,73 @@
-# CV Evaluation API
+# CV Evaluation AI API
 
-Backend API untuk evaluasi CV dan laporan proyek kandidat secara otomatis menggunakan pipeline AI dengan pemrosesan asinkron.
+A simple API based on Express.js and TypeScript for evaluating CVs using RAG (Retrieval-Augmented Generation) approach with DeepSeek model from OpenRouter.
 
-**Versi**: 1.0.0
+**Tech Stack**: Express.js, TypeScript, Prisma, PostgreSQL, OpenRouter, Vector Embeddings.
 
-## Arsitektur
+## How to Run
 
-Sistem menggunakan pola _asynchronous task processing_:
-
-- **API Server (Express.js)**: Menerima request, validasi input, dan membuat job
-- **Message Queue (In-Memory)**: Antrian sederhana untuk job yang akan diproses
-- **Background Worker**: Proses independen menggunakan `setInterval` untuk eksekusi job
-- **Data Stores (TypeScript Map)**: Penyimpanan status dan hasil job di memori
-
-## Instalasi & Setup
-
-1. Install dependensi:
+### 1. Clone & Enter Directory
 
 ```bash
-bun install
+git clone https://github.com/amrylil/cv_evaluation_api.git
+cd cv-evaluation-api
 ```
 
-2. Buat file `.env`:
-
-```env
-DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxx"
-```
-
-3. Jalankan server:
+### 2. Install Dependencies
 
 ```bash
-bun run dev
+npm install
 ```
 
-Server berjalan di `http://localhost:3000`
+### 3. Setup Environment Variables
 
-## API Endpoints
+Copy the example file `.env.example` to `.env`, then fill in the values.
 
-### Mulai Evaluasi
-
-```
-POST /api/v1/evaluations
+```bash
+cp .env.example .env
 ```
 
-**Request Body:**
+See details below.
 
-```json
-{
-  "cv_text": "Saya adalah seorang software engineer...",
-  "report_text": "Proyek terakhir saya adalah..."
-}
+### 4. Setup Database (Migrate & Seed)
+
+This command will set up the database schema and populate it with initial data.
+
+```bash
+npm run db:setup
 ```
 
-**Response (202 Accepted):**
+### 5. Run Server
 
-```json
-{
-  "id": "a1b2c3d4-e5f6-...",
-  "status": "queued"
-}
+```bash
+npm run dev
 ```
 
-### Cek Hasil
+## Environment Variables (`.env`)
+
+Fill your `.env` file as follows:
 
 ```
-GET /api/v1/evaluations/<job_id>
+# Database connection URL for Prisma
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+
+# API Key from OpenRouter.ai
+OPENROUTER_API_KEY="sk-or-v1-..."
+
+# Model Name (Optional, default already exists)
+DEEPSEEK_MODEL_NAME="deepseek/deepseek-chat"
+
+# Server Port
+PORT=3000
 ```
 
-**Response (jika completed):**
+## Explanation Why `.env` Is Included (Pushed)
 
-```json
-{
-    "id": "a1b2c3d4-e5f6-...",
-    "status": "completed",
-    "result": {
-        "extracted_info": { ... },
-        "score": 85,
-        "feedback": "Kandidat menunjukkan potensi yang kuat."
-    },
-    "createdAt": "2025-09-28T01:34:37.000Z"
-}
-```
+For ease of demonstration and testing of this project, the `.env` file is intentionally included in the repository. The purpose is so that anyone who clones this project can immediately see what variables are needed without having to search around.
 
-## Keterbatasan
+**Warning**: In real-world production projects, the `.env` file **must** be added to `.gitignore` to protect sensitive credentials such as API keys and database connection details.
 
-- **Stateless**: Data disimpan di memori, hilang saat server restart
-- **Single Worker**: Job diproses sekuensial dengan satu worker
+## Main Commands
 
-## Rencana Pengembangan
-
-- **Persistent Storage**: Migrasi ke PostgreSQL/MongoDB
-- **Robust Queue**: Implementasi Redis + BullMQ untuk sistem antrian yang lebih andal
+- `npm run dev`: Run development server.
+- `npm run db:setup`: Run database migration and seeding in one command.
