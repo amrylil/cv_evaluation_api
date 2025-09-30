@@ -43,6 +43,9 @@ npm run db:setup
 npm run dev
 ```
 
+The server will start and you can access the API documentation at:
+http://localhost:3000/api/v1/docs
+
 ## Environment Variables (`.env`)
 
 Fill your `.env` file as follows:
