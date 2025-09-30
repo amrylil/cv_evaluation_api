@@ -1,8 +1,30 @@
-import { Document, EvaluationTask, EvaluationStatus } from "@prisma/client";
+import {
+  Document,
+  EvaluationTask,
+  EvaluationStatus,
+  KnowledgeBase,
+} from "@prisma/client";
 import {
   EvaluationResponseDto,
   UploadCvResponseDto,
 } from "./dtos/evaluation.dto";
+
+export interface IKnowledgeRepository {
+  store(content: string, embedding: number[]): Promise<KnowledgeBase>;
+
+  getAll(): Promise<KnowledgeBase[]>;
+
+  searchRelevantChunks(
+    queryEmbedding: number[],
+    topK?: number
+  ): Promise<{ content: string; score: number }[]>;
+
+  findById(id: string): Promise<KnowledgeBase | null>;
+
+  update(id: string, content: string): Promise<KnowledgeBase>;
+
+  delete(id: string): Promise<void>;
+}
 
 export interface IEvaluationRepository {
   createDocument(filename: string, extractedText: string): Promise<Document>;

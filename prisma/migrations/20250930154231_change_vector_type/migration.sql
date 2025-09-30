@@ -35,13 +35,15 @@ CREATE TABLE "public"."evaluation_tasks" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."embeddings" (
+CREATE TABLE "public"."knowledge_base" (
     "id" TEXT NOT NULL,
-    "documentId" INTEGER NOT NULL,
-    "vector" DECIMAL(10,6)[],
+    "content" TEXT NOT NULL,
+    "embedding" JSONB NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
 
-    CONSTRAINT "embeddings_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "knowledge_base_pkey" PRIMARY KEY ("id")
 );
 
 -- AddForeignKey
@@ -49,6 +51,3 @@ ALTER TABLE "public"."evaluation_tasks" ADD CONSTRAINT "evaluation_tasks_cvDocum
 
 -- AddForeignKey
 ALTER TABLE "public"."evaluation_tasks" ADD CONSTRAINT "evaluation_tasks_projectDocumentId_fkey" FOREIGN KEY ("projectDocumentId") REFERENCES "public"."documents"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."embeddings" ADD CONSTRAINT "embeddings_documentId_fkey" FOREIGN KEY ("documentId") REFERENCES "public"."documents"("id") ON DELETE CASCADE ON UPDATE CASCADE;

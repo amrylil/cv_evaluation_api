@@ -18,7 +18,6 @@ model Document {
 
   evaluationTasksCv      EvaluationTask[] @relation("CvToDocument")
   evaluationTasksProject EvaluationTask[] @relation("ProjectToDocument")
-  embeddings             Embedding[]
 
   @@map("documents")
 }
@@ -44,14 +43,15 @@ model EvaluationTask {
   @@map("evaluation_tasks")
 }
 
-model Embedding {
-  id         String    @id @default(uuid())
-  documentId Int
-  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  vector     Decimal[] @db.Decimal(10, 6)
-  createdAt  DateTime  @default(now()) @map("created_at")
+model KnowledgeBase {
+  id        String    @id @default(uuid())
+  content   String
+  embedding Json
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
-  @@map("embeddings")
+  @@map("knowledge_base")
 }
 
 enum EvaluationStatus {

@@ -1,27 +1,26 @@
 import { callOpenRouter } from "../../../utils/deepseek";
 import { extractTextFromPdf } from "../../../utils/textExtractor";
 import { IEvaluationService } from "../contract";
-import { EvaluationRepository } from "../repositories/evaluation.repository";
 import { EvaluationStatus } from "@prisma/client";
 import {
   UploadCvResponseDto,
   uploadCvResponseSchema,
   EvaluationResponseDto,
   evaluationResponseSchema,
-  EvaluationResultDto,
   evaluationResultSchema,
 } from "../dtos/evaluation.dto";
 
-// === Import vector & rag utils ===
-import { embedText, searchRelevantChunks } from "../../../utils/vectorStore";
-// embedText -> buat embedding (contoh pakai OpenAI / OpenRouter embedder)
-// searchRelevantChunks -> cari chunk paling relevan dari JD / knowledge base
+import { KnowledgeService } from "./knowledge.usecase";
+import { handlePrompt } from "../../../utils/handlePrompt";
+import { EvaluationRepository } from "../repositories/evaluation.repository";
 
 export class EvaluationService implements IEvaluationService {
   private repo: EvaluationRepository;
+  private knowledgeService: KnowledgeService;
 
   constructor() {
     this.repo = new EvaluationRepository();
+    this.knowledgeService = new KnowledgeService();
   }
 
   async uploadCv(
@@ -52,13 +51,7 @@ export class EvaluationService implements IEvaluationService {
     });
   }
 
-  /**
-   * Jalankan evaluasi pakai LLM + RAG + JD
-   */
-  async runEvaluation(
-    taskId: string,
-    jobDescription?: string // opsional
-  ): Promise<EvaluationResponseDto> {
+  async runEvaluation(taskId: string, jobDescription?: string) {
     const task = await this.repo.findTaskById(taskId);
     if (!task) throw new Error("Task not found");
 
@@ -75,46 +68,17 @@ export class EvaluationService implements IEvaluationService {
 
     await this.repo.updateTask(taskId, EvaluationStatus.processing);
 
-    // === Vector Retrieval (RAG) ===
     const cvText = task.cvDocument?.extractedText ?? "";
-    const jdText = jobDescription ?? ""; // kosong kalau undefined
-    const jdEmbedding = await embedText(jdText);
-    const relevantChunks = await searchRelevantChunks(jdEmbedding, 5);
+    const jdText = jobDescription ?? "";
 
+    const relevantChunks = await this.knowledgeService.search(jdText, 5);
     const context = relevantChunks.map((c) => c.content).join("\n---\n");
 
-    const prompt = `
-You are evaluating a candidate for a specific job.
-
-Job Description:
-${jdText}
-
-Retrieved Context (RAG):
-${context}
-
-Candidate CV:
-${cvText}
-
-Return ONLY a valid JSON object with the following fields:
-{
-  "cv_match_rate": number,
-  "cv_feedback": string,
-  "project_score": number,
-  "project_feedback": string,
-  "overall_summary": string
-}
-No explanations, no extra text, no markdown.
-`;
+    const prompt = handlePrompt(jdText, context, cvText);
 
     try {
       const rawResponse = await callOpenRouter(prompt);
-      let parsed: EvaluationResultDto;
-
-      try {
-        parsed = evaluationResultSchema.parse(JSON.parse(rawResponse));
-      } catch {
-        throw new Error("Invalid AI response format");
-      }
+      const parsed = evaluationResultSchema.parse(JSON.parse(rawResponse));
 
       const updated = await this.repo.updateTask(
         taskId,

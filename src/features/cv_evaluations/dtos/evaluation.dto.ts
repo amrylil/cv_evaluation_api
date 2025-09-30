@@ -5,8 +5,12 @@ import { EvaluationStatus } from "@prisma/client";
  * Schema untuk upload CV request
  */
 export const uploadCvRequestSchema = z.object({
-  filename: z.string().min(1).openapi({ example: "cv_john_doe.pdf" }),
-  filePath: z.string().min(1).openapi({ example: "/uploads/cv_john_doe.pdf" }),
+  file: z.any().openapi({
+    type: "string",
+    format: "binary",
+    example: "cv.pdf",
+    description: "CV file to upload",
+  }),
 });
 
 /**
@@ -28,11 +32,9 @@ export const evaluationResultSchema = z.object({
     .string()
     .openapi({ example: "Strong backend skills, needs more AI experience" }),
   project_score: z.number().openapi({ example: 7.5 }),
-  project_feedback: z
-    .string()
-    .openapi({
-      example: "Good coverage of projects, missing details on scope",
-    }),
+  project_feedback: z.string().openapi({
+    example: "Good coverage of projects, missing details on scope",
+  }),
   overall_summary: z
     .string()
     .openapi({ example: "Strong candidate for backend junior roles" }),
